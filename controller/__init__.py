@@ -1,0 +1,1 @@
+"""Messages of Hope controller."""
