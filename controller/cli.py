@@ -4,19 +4,23 @@ from pathlib import Path
 from .policy import load_rules
 from .qc import validate
 from .assets import load_manifest, validate_assets
+from .pipeline import STAGES, load_pipeline, validate_pipeline
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rules-dir", required=True)
     parser.add_argument("--job", required=True)
-    parser.add_argument("--assets-dir", required=True, help="Directory containing seven independent PNGs")
-    parser.add_argument("--assets-manifest", required=True, help="JSON scene inspection manifest")
+    parser.add_argument("--assets-dir", required=True)
+    parser.add_argument("--assets-manifest", required=True)
+    parser.add_argument("--pipeline", required=True, help="Stage evidence JSON")
+    parser.add_argument("--stage", choices=STAGES, default="final_qc")
     args = parser.parse_args()
     try:
         hashes = load_rules(args.rules_dir)
         job = json.loads(Path(args.job).read_text(encoding="utf-8"))
         job["ruleset_hashes"] = hashes
         failures = validate(job)
+        failures += validate_pipeline(load_pipeline(args.pipeline), args.stage, args.rules_dir)
         failures += validate_assets(args.assets_dir, load_manifest(args.assets_manifest))
     except (OSError, ValueError, TypeError) as exc:
         print("BLOCKED:", exc)
