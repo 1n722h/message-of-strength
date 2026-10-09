@@ -1,0 +1,2 @@
+GitHub connector write test for Messages of Hope.
+No credentials or production settings.
